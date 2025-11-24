@@ -32,7 +32,8 @@ const StageUpdatePanel = ({ candidate, isOpen, onClose, onUpdate }) => {
 
   const handleSubmit = (e) => {
       e.preventDefault();
-      onUpdate(selectedStage, status, notify);
+      console.log('🔔 Submit stage update:', { selectedStage, status, note, notify });
+      onUpdate(selectedStage, status, note, notify);
       onClose();
   };
 
@@ -96,12 +97,15 @@ const StageUpdatePanel = ({ candidate, isOpen, onClose, onUpdate }) => {
                         type="checkbox" 
                         id="notify" 
                         checked={notify} 
-                        onChange={(e) => setNotify(e.target.checked)} 
-                        className="w-4 h-4 rounded focus:ring-primary border border-gray-300 cursor-pointer bg-white accent-green-600" 
+                        onChange={(e) => {
+                          console.log('🔔 Notify checkbox changed to:', e.target.checked);
+                          setNotify(e.target.checked);
+                        }} 
+                        className="w-5 h-5 rounded focus:ring-primary border-2 border-gray-400 cursor-pointer accent-green-600" 
                     />
                 </div>
                 <label htmlFor="notify" className="text-sm cursor-pointer select-none">
-                    <span className="font-semibold text-blue-800 block mb-0.5">Notify Candidate</span>
+                    <span className="font-semibold text-blue-800 block mb-0.5">Notify Candidate ✅</span>
                     <span className="text-blue-600 flex items-center gap-2 text-xs">
                         Automatically send Email <Mail size={10} /> & WhatsApp <MessageSquare size={10} /> update.
                     </span>
