@@ -409,9 +409,68 @@ const apiFetchApplicants = async () => {
     return true;
   };
 
-  const sendWhatsApp = (phone, message) => {
-    // console.log(`[MOCK WHATSAPP]\nTo: ${phone}\nMessage: ${message}\n-------------------`);
-    return true;
+  const sendWhatsApp = async (phone, message) => {
+    console.log('🔵 sendWhatsApp called with:', { phone, messageLength: message?.length });
+    
+    try {
+      // Get environment variables (Vite uses import.meta.env, not process.env)
+      const phoneId = import.meta.env.VITE_WHATSAPP_PHONE_ID;
+      const token = import.meta.env.VITE_WHATSAPP_TOKEN;
+
+      console.log('🔵 WhatsApp credentials check:', { 
+        phoneIdExists: !!phoneId, 
+        tokenExists: !!token,
+        phoneIdLength: phoneId?.length,
+        tokenLength: token?.length 
+      });
+
+      // Validate environment variables
+      if (!phoneId || !token) {
+        console.warn('⚠️ WhatsApp credentials not configured. Skipping WhatsApp message.');
+        return false;
+      }
+
+      const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
+      console.log('🔵 WhatsApp API URL:', url);
+
+      const payload = {
+        messaging_product: "whatsapp",
+        to: phone, // Use the phone parameter, not 'to'
+        type: "text",
+        text: { body: message }
+      };
+
+      console.log('🔵 WhatsApp payload:', JSON.stringify(payload, null, 2));
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      
+      console.log('🔵 WhatsApp API response:', { 
+        status: response.status, 
+        ok: response.ok,
+        data 
+      });
+      
+      if (!response.ok) {
+        console.error("❌ WhatsApp API Error:", data);
+        return false;
+      }
+
+      console.log("✅ WhatsApp sent successfully:", data);
+      return true;
+
+    } catch (err) {
+      console.error("❌ WhatsApp Error:", err);
+      return false;
+    }
   };
   // -----------------------------
 
@@ -637,7 +696,9 @@ const apiFetchApplicants = async () => {
             let whatsappSent = false;
 
             if (notify && NOTIFICATION_TEMPLATES[stageId]) {
+            console.log('📧 Notification enabled for stage:', stageId);
             const tmpl = NOTIFICATION_TEMPLATES[stageId];
+            console.log('📧 Template found:', tmpl ? 'Yes' : 'No');
 
             const processText = (text) =>
                 text
@@ -648,6 +709,8 @@ const apiFetchApplicants = async () => {
             const emailSub = processText(tmpl.emailSubject);
             const emailBody = processText(tmpl.emailBody);
             const waBody = processText(tmpl.whatsapp);
+
+            console.log('📧 Processed WhatsApp message:', waBody);
 
             if (app.email) {
                 sendEmail(app.email, emailSub, emailBody);
@@ -662,7 +725,31 @@ const apiFetchApplicants = async () => {
             }
 
             if (app.phone) {
-                sendWhatsApp(app.phone, waBody);
+                console.log('📱 Phone number found:', app.phone);
+                
+                // Format phone number for WhatsApp (remove spaces, dashes, add country code if needed)
+                let formattedPhone = app.phone.replace(/[\s\-()]/g, '');
+                
+                // If phone doesn't start with country code, add default (India +91)
+                if (!formattedPhone.startsWith('+') && !formattedPhone.startsWith('91')) {
+                  formattedPhone = '91' + formattedPhone;
+                }
+                
+                // Remove + if present (WhatsApp API expects number without +)
+                formattedPhone = formattedPhone.replace(/^\+/, '');
+                
+                console.log('📱 Formatted phone number:', formattedPhone);
+                console.log('📱 About to send WhatsApp...');
+                
+                // Send WhatsApp message
+                sendWhatsApp(formattedPhone, waBody).then(success => {
+                  if (success) {
+                    console.log('✅ WhatsApp sent successfully to', formattedPhone);
+                  } else {
+                    console.log('❌ WhatsApp send failed to', formattedPhone);
+                  }
+                });
+                
                 whatsappSent = true;
                 newTimelineEvents.push({
                 id: `evt_wa_${uuidv4()}`,
@@ -671,7 +758,16 @@ const apiFetchApplicants = async () => {
                 date: timestamp,
                 user: "System",
                 });
+            } else {
+                console.log('⚠️ No phone number found for applicant');
             }
+            } else {
+                if (!notify) {
+                    console.log('ℹ️ Notifications disabled by user');
+                }
+                if (!NOTIFICATION_TEMPLATES[stageId]) {
+                    console.log('⚠️ No notification template found for stage:', stageId);
+                }
             }
 
             // History Entry
