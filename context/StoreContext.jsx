@@ -405,7 +405,6 @@ const apiFetchApplicants = async () => {
 
   // --- Mock Backend Communications (Logging) ---
   const sendEmail = (to, subject, body) => {
-    // console.log(`[MOCK EMAIL]\nTo: ${to}\nSubject: ${subject}\nBody: ${body}\n-------------------`);
     return true;
   };
 
