@@ -408,69 +408,30 @@ const apiFetchApplicants = async () => {
     return true;
   };
 
-  const sendWhatsApp = async (phone, message) => {
-    console.log('🔵 sendWhatsApp called with:', { phone, messageLength: message?.length });
-    
-    try {
-      // Get environment variables (Vite uses import.meta.env, not process.env)
-      const phoneId = import.meta.env.VITE_WHATSAPP_PHONE_ID;
-      const token = import.meta.env.VITE_WHATSAPP_TOKEN;
 
-      console.log('🔵 WhatsApp credentials check:', { 
-        phoneIdExists: !!phoneId, 
-        tokenExists: !!token,
-        phoneIdLength: phoneId?.length,
-        tokenLength: token?.length 
-      });
+const sendWhatsApp = async (phone, message) => {
+  try {
+    const response = await fetch("/api/whatsapp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, message }),
+    });
 
-      // Validate environment variables
-      if (!phoneId || !token) {
-        console.warn('⚠️ WhatsApp credentials not configured. Skipping WhatsApp message.');
-        return false;
-      }
+    const data = await response.json();
 
-      const url = `https://graph.facebook.com/v18.0/${phoneId}/messages`;
-      console.log('🔵 WhatsApp API URL:', url);
-
-      const payload = {
-        messaging_product: "whatsapp",
-        to: phone, // Use the phone parameter, not 'to'
-        type: "text",
-        text: { body: message }
-      };
-
-      console.log('🔵 WhatsApp payload:', JSON.stringify(payload, null, 2));
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      
-      console.log('🔵 WhatsApp API response:', { 
-        status: response.status, 
-        ok: response.ok,
-        data 
-      });
-      
-      if (!response.ok) {
-        console.error("❌ WhatsApp API Error:", data);
-        return false;
-      }
-
-      console.log("✅ WhatsApp sent successfully:", data);
-      return true;
-
-    } catch (err) {
-      console.error("❌ WhatsApp Error:", err);
-      return false;
+    if (!response.ok) {
+      console.error("WhatsApp send failed:", data);
+      return { success: false, error: data };
     }
-  };
+
+    return { success: true };
+
+  } catch (error) {
+    console.error("WhatsApp request error:", error);
+    return { success: false, error };
+  }
+}
+
   // -----------------------------
 
   const login = (userData) => {
