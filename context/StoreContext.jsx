@@ -410,6 +410,8 @@ const apiFetchApplicants = async () => {
 
 
 const sendWhatsApp = async (phone, message) => {
+    const token = localStorage.getItem("token");
+
   try {
     const response = await fetch("/api/whatsapp/send", {
       method: "POST",
