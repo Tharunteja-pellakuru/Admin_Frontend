@@ -413,7 +413,7 @@ const sendWhatsApp = async (phone, message) => {
   try {
     const response = await fetch("/api/whatsapp/send", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: token ? `Bearer ${token}` : "",},
       body: JSON.stringify({ phone, message }),
     });
 
