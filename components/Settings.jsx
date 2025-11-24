@@ -48,17 +48,23 @@ const Settings = () => {
     }
 
     try {
+      // 1. Pass the data to the update function
       await updateUserProfile({
         name: profile.name.trim(),
         email: profile.email.trim(),
       });
-      setUsers((prev) =>
-        prev.map((u) => (u.id === user.id ? { ...u, ...updatedData } : u))
-      );
 
-      showToast("Profile updated successfully", "success");
+      // 2. Update local users list using the current 'profile' state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id
+            ? { ...u, name: profile.name.trim(), email: profile.email.trim() } // <-- Use data from 'profile'
+            : u
+        )
+      );
     } catch (err) {
       console.error("Update failed:", err);
+      showToast(err.message || "Failed to update profile", "error");
     }
   };
 
@@ -127,7 +133,7 @@ const Settings = () => {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:5000/update-password/${user.id}`,
+        `${API_BASE}/update-password/${user.id}`,
         {
           method: "PATCH",
           headers: {
@@ -162,7 +168,6 @@ const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto pb-10 space-y-6 relative">
       <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
-
       {/* ========================= PROFILE SETTINGS ========================= */}
       <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="p-6 border-b border-gray-100">
@@ -201,9 +206,6 @@ const Settings = () => {
         </div>
 
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-          <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 mr-3">
-            Cancel
-          </button>
           <button
             onClick={handleSaveChanges}
             className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover shadow-sm"
@@ -212,78 +214,98 @@ const Settings = () => {
           </button>
         </div>
       </div>
-
       {/* ========================= SECURITY SETTINGS ========================= */}
+           {" "}
       <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
+               {" "}
         <div className="p-6 border-b border-gray-100">
+                   {" "}
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Lock size={20} className="text-primary" />
-            Security
+                        <Lock size={20} className="text-primary" />           
+            Security          {" "}
           </h2>
+                 {" "}
         </div>
-
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Current Password
-            </label>
-            <input
-              type="password"
-              value={passwords.currentPassword}
-              onChange={(e) =>
-                setPasswords({ ...passwords, currentPassword: e.target.value })
-              }
-              placeholder="••••••••"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* ⬅️ FIX: Add a <form> tag here */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handlePasswordUpdate();
+          }}
+        >
+                   {" "}
+          <div className="p-6 space-y-4">
+            {/* Current Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                New Password
+                Current Password
               </label>
               <input
                 type="password"
-                value={passwords.newPassword}
-                onChange={(e) =>
-                  setPasswords({ ...passwords, newPassword: e.target.value })
-                }
-                placeholder="••••••••"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary/50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={passwords.confirmPassword}
+                autoComplete="current-password"
+                value={passwords.currentPassword}
                 onChange={(e) =>
                   setPasswords({
                     ...passwords,
-                    confirmPassword: e.target.value,
+                    currentPassword: e.target.value,
                   })
                 }
                 placeholder="••••••••"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary/50"
               />
             </div>
+
+            {/* New Password + Confirm */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* New Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwords.newPassword}
+                  onChange={(e) =>
+                    setPasswords({ ...passwords, newPassword: e.target.value })
+                  }
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              {/* Confirm New Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwords.confirmPassword}
+                  onChange={(e) =>
+                    setPasswords({
+                      ...passwords,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-          <button
-            onClick={handlePasswordUpdate}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover shadow-sm"
-          >
-            Update Password
-          </button>
-        </div>
+                   {" "}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                       {" "}
+            <button className="px-4 py-2 bg-primary text-white rounded-lg">
+              Update Password
+            </button>
+                     {" "}
+          </div>
+        </form>{" "}
+        {/* ⬅️ Close the <form> tag here */}     {" "}
       </div>
-
       {/* ========================= USER MANAGEMENT ========================= */}
       <div className="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -302,7 +324,7 @@ const Settings = () => {
           )}
         </div>
 
-        <div className="p-0">
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 text-gray-500">
               <tr>
@@ -331,7 +353,7 @@ const Settings = () => {
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
                         u.role === "admin"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-primary-100 text-primary-700"
                           : "bg-blue-100 text-blue-700"
                       }`}
                     >
@@ -359,7 +381,6 @@ const Settings = () => {
           </table>
         </div>
       </div>
-
       {/* ========================= ADD USER MODAL ========================= */}
       {isAddUserOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
@@ -459,7 +480,6 @@ const Settings = () => {
           </div>
         </div>
       )}
-
       {/* ========================= DELETE CONFIRMATION ========================= */}
       {userToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">

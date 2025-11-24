@@ -10,28 +10,32 @@ const ApplicationsList = () => {
   const { applications, jobs } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [activeDepartment, setActiveDepartment] = useState('All');
+
+  console.log(applications);
 
   // Helper to get department for an application
   const getDepartment = (jobId) => {
       const job = jobs.find(j => j.id === jobId);
-      return job ? job.department : 'Unknown';
+      return job?.details?.department || 'Unknown';
   };
 
-  const departments = Array.from(new Set(jobs.map(j => j.department))).sort();
-  const categories = ['All', ...departments];
+  const departments = Array.from(new Set(jobs.map(j => j.details?.department).filter(Boolean))).sort();
+  const categories = ['All', 'Shortlisted', 'Rejected', 'Hired'];
 
   const getCategoryCount = (cat) => {
       if (cat === 'All') return applications.length;
-      return applications.filter(app => getDepartment(app.jobId) === cat).length;
+      return applications.filter(app => app.status === cat).length;
   };
 
   const filteredApps = applications.filter(app => {
     const appDept = getDepartment(app.jobId);
     const matchesSearch = app.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || appDept === activeCategory;
+    const matchesCategory = activeCategory === 'All' || app.status === activeCategory;
+    const matchesDepartment = activeDepartment === 'All' || appDept === activeDepartment;
     
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesDepartment;
   });
 
   // Calculate progress for an app
@@ -61,7 +65,7 @@ const ApplicationsList = () => {
                             }`}
                       >
                           {cat}
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-100 text-primary' : 'bg-gray-100 text-gray-500'}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-primary-100 text-primary' : 'bg-gray-100 text-gray-500'}`}>
                               {count}
                           </span>
                       </button>
@@ -83,9 +87,16 @@ const ApplicationsList = () => {
         </div>
          <div className="flex items-center gap-2 w-full md:w-auto">
             <Filter size={20} className="text-gray-500" />
-            <button className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 text-sm font-medium">
-                Filter Pipeline
-            </button>
+            <select
+                value={activeDepartment}
+                onChange={(e) => setActiveDepartment(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+                <option value="All">All Departments</option>
+                <option value="Development">Development</option>
+                <option value="Design">Design</option>
+                <option value="Marketing">Marketing</option>
+            </select>
         </div>
       </div>
 
@@ -105,8 +116,8 @@ const ApplicationsList = () => {
             <tbody className="divide-y divide-gray-100">
               {filteredApps.length > 0 ? (
                 filteredApps.map((app) => {
-                    const stageName = HIRING_STAGES.find(s => s.id === app.currentStageId)?.name || 'Unknown';
-                    const progress = getProgress(app.currentStageId);
+                    const stageName = HIRING_STAGES.find(s => s.id === app.currentStage)?.name || 'Unknown';
+                    const progress = getProgress(app.currentStage);
                     
                     return (
                     <tr key={app.id} className="hover:bg-gray-50 transition-colors group">
@@ -128,7 +139,7 @@ const ApplicationsList = () => {
                         </td>
                         <td className="px-6 py-4">
                            <span className={`px-2 py-0.5 rounded text-xs font-medium border
-                              ${app.currentStageStatus === 'Cleared' ? 'bg-green-50 text-green-700 border-green-200' : 
+                              ${app.currentStageStatus === 'Cleared' ? 'bg-primary-50 text-primary-700 border-primary-200' : 
                                 app.currentStageStatus === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200' :
                                 app.currentStageStatus === 'On Hold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                 'bg-blue-50 text-blue-700 border-blue-200'}`}>

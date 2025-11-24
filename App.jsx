@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { StoreProvider } from "./context/StoreContext";
+
 import Layout from "./components/Layout";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
@@ -14,28 +14,30 @@ import JobEditor from "./components/JobEditor";
 import ApplicationsList from "./components/ApplicationsList";
 import ApplicationView from "./components/ApplicationView";
 import Settings from "./components/Settings";
+import { StoreProvider } from "./context/StoreContext";
 
 const App = () => {
   return (
     <StoreProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+      <>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="jobs" element={<JobsList />} />
-            <Route path="jobs/new" element={<JobEditor />} />
-            <Route path="jobs/:id" element={<JobEditor />} />
-            <Route path="applications" element={<ApplicationsList />} />
-            <Route path="applications/:id" element={<ApplicationView />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="jobs" element={<JobsList />} />
+              <Route path="jobs/new" element={<JobEditor />} />
+              <Route path="jobs/:id" element={<JobEditor />} />
+              <Route path="applications" element={<ApplicationsList />} />
+              <Route path="applications/:id" element={<ApplicationView />} />
+              <Route path="settings" element={<Settings />} />
 
-            {/* Redirect unknown URLs */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </Router>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </Router>
+      </>
     </StoreProvider>
   );
 };

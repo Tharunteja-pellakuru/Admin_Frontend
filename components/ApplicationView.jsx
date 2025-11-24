@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { HIRING_STAGES } from '../constants';
-import { ChevronLeft, Mail, Phone, MapPin, Calendar, Briefcase, Download, Star, User, FileText, Linkedin, Globe, Check, ArrowRight, Ban, Video, Clock, CheckCircle } from 'lucide-react';
+import { ChevronLeft, Mail, Phone, MapPin, Calendar, Briefcase, Download, Star, User, FileText, Linkedin, Globe, Check, ArrowRight, Ban, Video, Clock, CheckCircle, Eye } from 'lucide-react';
 import StageUpdatePanel from './StageUpdatePanel';
 import StageTimeline from './StageTimeline';
 import InterviewScheduler from './InterviewScheduler';
@@ -13,6 +14,8 @@ const ApplicationView = () => {
   const navigate = useNavigate();
   const { getApplication, updateApplication, addTimelineEvent, updateCandidateStage, scheduleInterview, user } = useStore();
   const application = getApplication(id || '');
+
+  console.log(application);
   
   const [noteInput, setNoteInput] = useState('');
   const [isStagePanelOpen, setIsStagePanelOpen] = useState(false);
@@ -23,7 +26,7 @@ const ApplicationView = () => {
   }
 
   // Find current stage index for progress bar
-  const currentStageIndex = HIRING_STAGES.findIndex(s => s.id === application.currentStageId);
+  const currentStageIndex = HIRING_STAGES.findIndex(s => s.id === application.currentStage);
   const progressPercentage = ((currentStageIndex + 1) / HIRING_STAGES.length) * 100;
 
   const handleRating = (rating) => {
@@ -35,7 +38,7 @@ const ApplicationView = () => {
       if (!noteInput.trim()) return;
       
       const newEvent = {
-          id: `evt_${Date.now()}`,
+          id: `evt_${uuidv4()}`,
           type: 'note',
           content: noteInput,
           date: new Date().toLocaleString(),
@@ -70,9 +73,9 @@ const ApplicationView = () => {
               <div>
                   <p className="text-sm text-gray-500 mb-1">Current Stage</p>
                   <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-                      {HIRING_STAGES.find(s => s.id === application.currentStageId)?.name || 'Unknown'}
+                      {HIRING_STAGES.find(s => s.id === application.currentStage)?.name || 'Unknown'}
                       <span className={`text-xs px-2 py-1 rounded-full border font-medium
-                          ${application.currentStageStatus === 'Cleared' ? 'bg-green-50 text-green-700 border-green-200' : 
+                          ${application.currentStageStatus === 'Cleared' ? 'bg-primary-50 text-primary-700 border-primary-200' : 
                             application.currentStageStatus === 'Rejected' ? 'bg-red-50 text-red-700 border-red-200' :
                             application.currentStageStatus === 'On Hold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                             'bg-blue-50 text-blue-700 border-blue-200'}`}>
@@ -108,10 +111,10 @@ const ApplicationView = () => {
           </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-4xl mx-auto space-y-6">
           
-        {/* LEFT COLUMN: Candidate Info */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Candidate Info */}
+        <div className="space-y-6">
              {/* Header Card */}
             <div className="bg-white rounded-xl shadow-sm border border-border p-6 relative overflow-hidden">
                 <div className="flex flex-col md:flex-row justify-between gap-6 relative z-10">
@@ -161,10 +164,24 @@ const ApplicationView = () => {
                 </div>
                 
                 {/* Actions Bar */}
-                <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-                     <a href={application.resumeUrl || '#'} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all text-sm font-medium">
-                        <Download size={16} /> Download Resume
-                    </a>
+                <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
+                     <div className="flex gap-3">
+                        <a 
+                            href={application.resumeUrl || '#'} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-all text-sm font-medium"
+                        >
+                            <Eye size={16} /> View Resume
+                        </a>
+                        <a 
+                            href={application.resumeUrl || '#'} 
+                            download
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-primary text-primary hover:bg-primary-50 transition-all text-sm font-medium"
+                        >
+                            <Download size={16} /> Download Resume
+                        </a>
+                     </div>
                 </div>
             </div>
 
@@ -228,14 +245,27 @@ const ApplicationView = () => {
                 </h2>
                 <div className="space-y-6">
                     {Object.entries(application.answers).length > 0 ? (
-                        Object.entries(application.answers).map(([key, value]) => (
+                        Object.entries(application.answers).map(([key, value]) => {
+                            // Resolve label from schema
+                            let label = key;
+                            if (application.steps_json?.steps) {
+                                for (const step of application.steps_json.steps) {
+                                    const field = step.fields?.find(f => f.id === key);
+                                    if (field) {
+                                        label = field.label;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            return (
                             <div key={key} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0 group">
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 group-hover:text-primary transition-colors">{key}</h3>
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 group-hover:text-primary transition-colors">{label}</h3>
                                 <div className="text-gray-800 bg-gray-50 p-4 rounded-lg text-sm border border-gray-100">
                                     {Array.isArray(value) ? value.join(', ') : String(value)}
                                 </div>
                             </div>
-                        ))
+                        )})
                     ) : (
                         <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                             <p className="text-gray-400 italic">No custom questions answered.</p>
@@ -245,36 +275,7 @@ const ApplicationView = () => {
             </div>
         </div>
 
-        {/* RIGHT COLUMN: Timeline & Notes */}
-        <div className="lg:col-span-1 space-y-6">
-             
-             {/* Hiring Pipeline History */}
-             <div className="bg-white rounded-xl shadow-sm border border-border p-6">
-                <h2 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider flex items-center gap-2">
-                    <Briefcase size={16} /> Hiring Pipeline
-                </h2>
-                <StageTimeline history={application.stageHistory} />
-             </div>
 
-             {/* Notes Input */}
-             <div className="bg-white rounded-xl shadow-sm border border-border p-6">
-                <h2 className="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider">Internal Notes</h2>
-                <form onSubmit={handleAddNote}>
-                    <textarea 
-                        value={noteInput}
-                        onChange={(e) => setNoteInput(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none mb-2 transition-all"
-                        rows={3}
-                        placeholder="Add a note about this candidate..."
-                    ></textarea>
-                    <div className="flex justify-end">
-                        <button type="submit" disabled={!noteInput.trim()} className="bg-primary text-white px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wide hover:bg-primary-hover disabled:opacity-50 transition-colors shadow-sm">
-                            Add Note
-                        </button>
-                    </div>
-                </form>
-             </div>
-        </div>
       </div>
 
       <StageUpdatePanel 

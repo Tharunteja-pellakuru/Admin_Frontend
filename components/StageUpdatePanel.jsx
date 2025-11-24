@@ -3,15 +3,16 @@ import { HIRING_STAGES } from '../constants';
 import { X, Send, CheckCircle, MessageSquare, Mail } from 'lucide-react';
 
 const StageUpdatePanel = ({ candidate, isOpen, onClose, onUpdate }) => {
-  const [selectedStage, setSelectedStage] = useState(candidate.currentStageId);
+  const [selectedStage, setSelectedStage] = useState(candidate.currentStage);
   const [status, setStatus] = useState(candidate.currentStageStatus);
   const [note, setNote] = useState('');
   const [notify, setNotify] = useState(true);
 
+  console.log(candidate);
   // Reset form when opening
   useEffect(() => {
     if (isOpen) {
-        setSelectedStage(candidate.currentStageId);
+        setSelectedStage(candidate.currentStage);
         setStatus(candidate.currentStageStatus);
         setNote('');
         setNotify(true);
@@ -24,14 +25,14 @@ const StageUpdatePanel = ({ candidate, isOpen, onClose, onUpdate }) => {
       const newStage = e.target.value;
       setSelectedStage(newStage);
       // Auto-set status to 'Pending' if moving to a new stage
-      if (newStage !== candidate.currentStageId) {
+      if (newStage !== candidate.currentStage) {
           setStatus('Pending');
       }
   };
 
   const handleSubmit = (e) => {
       e.preventDefault();
-      onUpdate(selectedStage, status, note, notify);
+      onUpdate(selectedStage, status, notify);
       onClose();
   };
 
@@ -65,14 +66,14 @@ const StageUpdatePanel = ({ candidate, isOpen, onClose, onUpdate }) => {
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Stage Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Status</label>
                 <select 
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                     className="w-full px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                 >
-                    <option value="Pending">Pending (In Progress)</option>
-                    <option value="Cleared">Cleared (Passed)</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Cleared">Cleared</option>
                     <option value="Rejected">Rejected</option>
                     <option value="On Hold">On Hold</option>
                 </select>

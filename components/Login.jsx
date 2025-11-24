@@ -10,13 +10,15 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+const API_BASE = "http://localhost:5000";
+
 const Login = () => {
   const navigate = useNavigate();
   const { login, users } = useStore();
 
   // Login State
-  const [email, setEmail] = useState("admin@careers.com");
-  const [password, setPassword] = useState("Password@123");
+  const [email, setEmail] = useState("superadmin@careers.com");
+  const [password, setPassword] = useState("Password@1234");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -31,22 +33,20 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Login failed");
 
-      // Save token
+      // ⭐ FIX: Save token so authenticateUser works
       localStorage.setItem("token", data.token);
 
-      // Pass full user object to context
+      // ⭐ FIX: Save logged-in user in context
       login(data.user);
 
       navigate("/");
@@ -163,7 +163,7 @@ const Login = () => {
                 <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 border border-gray-300 rounded bg-white focus:ring-primary cursor-pointer accent-green-600"
+                    className="w-4 h-4 border border-gray-300 rounded bg-white focus:ring-primary cursor-pointer accent-primary"
                   />
                   Remember me
                 </label>
@@ -194,7 +194,7 @@ const Login = () => {
           <>
             {resetStatus === "success" ? (
               <div className="text-center py-4">
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle size={32} />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">

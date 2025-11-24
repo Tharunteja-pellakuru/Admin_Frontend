@@ -20,9 +20,12 @@ import {
   Cell,
 } from "recharts";
 import { ApplicationStatus, JobStatus } from "../types";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { jobs, applications } = useStore();
+
+  const navigate = useNavigate();
 
   const stats = {
     totalJobs: jobs.length,
@@ -48,6 +51,12 @@ const Dashboard = () => {
 
   const recentApplications = applications.slice(0, 5);
 
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    navigate("/login");
+  }
+
   return (
     <div className="space-y-6 pb-10">
       <div>
@@ -67,7 +76,7 @@ const Dashboard = () => {
           title="Active Jobs"
           value={stats.activeJobs}
           icon={<Zap size={20} />}
-          bgClass="bg-emerald-500"
+          bgClass="bg-primary"
         />
         <StatCard
           title="Closed Jobs"
@@ -162,7 +171,7 @@ const Dashboard = () => {
                   key={app.id}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100"
                 >
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary-600 font-semibold text-sm shrink-0">
                     {app.candidateName
                       .split(" ")
                       .map((n) => n[0])
@@ -183,7 +192,7 @@ const Dashboard = () => {
                       app.status === ApplicationStatus.NEW
                         ? "bg-blue-50 text-blue-600"
                         : app.status === ApplicationStatus.SHORTLISTED
-                        ? "bg-green-50 text-green-600"
+                        ? "bg-primary-50 text-primary-600"
                         : app.status === ApplicationStatus.REJECTED
                         ? "bg-red-50 text-red-600"
                         : "bg-gray-100 text-gray-600"
