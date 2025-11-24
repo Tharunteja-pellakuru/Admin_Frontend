@@ -413,7 +413,7 @@ const sendWhatsApp = async (phone, message) => {
     const token = localStorage.getItem("token");
 
   try {
-    const response = await fetch("/api/whatsapp/send", {
+    const response = await fetch(`${API_BASE}/api/whatsapp/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: token ? `Bearer ${token}` : "",},
       body: JSON.stringify({ phone, message }),
