@@ -10,7 +10,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://adminbackend-production-d381.up.railway.app";
 
 const Login = () => {
   const navigate = useNavigate();
