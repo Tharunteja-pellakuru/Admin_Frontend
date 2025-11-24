@@ -414,7 +414,7 @@ const apiFetchApplicants = async () => {
     
     try {
       // Get environment variables (Vite uses import.meta.env, not process.env)
-      const phoneId = import.meta.env.PHONE_NUMBER_ID;
+      const phoneId = import.meta.env.VITE_WHATSAPP_PHONE_ID;
       const token = import.meta.env.VITE_WHATSAPP_TOKEN;
 
       console.log('🔵 WhatsApp credentials check:', { 
