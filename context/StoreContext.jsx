@@ -675,6 +675,16 @@ const apiFetchApplicants = async () => {
   };
 
   const updateCandidateStage = async (candidateId, stageId, status, note, notify) => {
+    console.log('🔵 updateCandidateStage called with:', { 
+      candidateId, 
+      stageId, 
+      status, 
+      note, 
+      notify,
+      noteType: typeof note,
+      notifyType: typeof notify
+    });
+    
     try {
         // 1. Call API first
         await apiUpdateApplicantStage(candidateId, stageId, status, note);
