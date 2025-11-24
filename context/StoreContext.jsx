@@ -414,8 +414,8 @@ const apiFetchApplicants = async () => {
     
     try {
       // Get environment variables (Vite uses import.meta.env, not process.env)
-      const phoneId = import.meta.env.VITE_WHATSAPP_PHONE_ID;
-      const token = import.meta.env.VITE_WHATSAPP_TOKEN;
+      const phoneId = 818534471353814;
+      const token = EAAXbNsgrhzkBQBHSZC34XEgXxzVOoki57VUosHRKzgSgIhrZA9ZCejyoAqMhsFQodT4WZAV1H4x4OpL2Vknf3KCFLSnKkcFz0csLjNUOLi2hQMTqPi0vQwI9VI6Umiob2KLFXn9ja9lZCaLCIs4m4EBWgYqyqpZCVwtXOubLe5IvwqfKZBlNL0qGC5oZBISLZAhyQCduOfTTPsNN4ZBxW74SFZCMT7Dv8GjMgynJ6e1bJMNmv707tW1vxDYMif1QzZA6Gr1XBLPCwfLDuDIbzhgEbJmR7T2B2Az1yZA2ZC1ESl;
 
       console.log('🔵 WhatsApp credentials check:', { 
         phoneIdExists: !!phoneId, 
