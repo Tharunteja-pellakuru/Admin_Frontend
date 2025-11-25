@@ -10,7 +10,7 @@ import {
 } from "../constants";
 
 // API_BASE must be defined once
-const API_BASE = "https://adminbackend-production-d381.up.railway.app";
+const API_BASE = "https://adminbackend-production-5195.up.railway.app";
 
 const StoreContext = createContext(undefined);
 
